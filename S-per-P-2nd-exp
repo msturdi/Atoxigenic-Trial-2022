@@ -1,0 +1,58 @@
+data atoxigenic_fertilizer;
+input Treatment$ temp$ in_period$ rep subsample spore_p;
+cards;
+
+*DATA*
+
+;					
+proc glm;
+	class Treatment temp in_period rep subsample spore_p;
+	model spore_p = Treatment temp in_period rep subsample;
+	means Treatment temp in_period /cldiff tukey alpha=.05 lines;
+	lsmeans Treatment temp in_period /pdiff adjust=tukey lines;
+
+*Attribute maps only apply to group variables;
+data tmtattrmap1;
+	retain ID "tmt";
+	input value $ fillcolor $ linecolor $;
+	datalines;
+	AflaC CX33A02C CX33A02C
+	AflaU CXB2DF8A CXB2DF8A
+	AF36C CX1F78B4 CX1F78B4
+	AF36U CXA6CEE3 CXA6CEE3
+	;
+	run;
+	
+proc sgplot data=atoxigenic_fertilizer dattrmap=tmtattrmap1;
+	vbar Treatment / response=spore_p group=Treatment stat=mean attrid=tmt 
+		datalabel dataskin=crisp;
+	keylegend / autoitemsize fillaspect=golden location=outside
+		position=bottom noborder;
+	xaxis display=(nolabel) display=(novalues) display=(noticks);
+	yaxis label='Average Spores per Piece';
+	title 'Average Spores per Piece for each Treatment';
+	
+proc sgplot data=atoxigenic_fertilizer dattrmap=tmtattrmap1;
+	vbox spore_p / category=Treatment group=Treatment attrid=tmt 
+		grouporder=ascending outlierattrs=(color=black) 
+			meanattrs=(color=black) medianattrs=(color=black)
+			whiskerattrs=(color=black) dataskin=crisp; 
+	keylegend / autoitemsize fillaspect=golden location=inside 
+		position=bottomright noborder;
+	xaxis display=(novalues) display=(noticks) display=(nolabel);
+	yaxis label='Average Spores per Piece';
+	title 'Average Spores per Piece for each Treatment';
+	
+proc sgpanel data=atoxigenic_fertilizer dattrmap=tmtattrmap1;
+	where in_period in ('2','7');
+	panelby Treatment temp / layout=lattice onepanel;
+	vbar in_period / response=spore_p group=Treatment stat=mean 
+		barwidth=0.6 attrid=tmt dataskin=crisp;
+	title 'Atoxigenic Spore Production';
+	title2 'as a Function of Incubation Time & Temperature';
+	keylegend / position=right autoitemsize fillaspect=golden;
+
+proc univariate normal;
+	var spore_p;
+  
+run;
