@@ -1,0 +1,15 @@
+data atoxigenic_fertilizer_3;
+input Treatment$ temp$ in_period$ rep subsample spore_p spore_g;
+cards;
+
+*DATA*
+
+;
+proc corr data=atoxigenic_fertilizer_3 fisher plots=scatter;
+	var spore_p spore_g;
+  
+proc sgscatter data=atoxigenic_fertilizer_3;
+	matrix spore_p--spore_g / group=Treatment diagonal=(histogram normal)
+		legend=(noborder sortorder=ascending);
+    
+run;
